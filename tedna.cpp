@@ -22,15 +22,15 @@ along with this program.
 #include "optionparser.h"
 #include "assembler.hpp"
 
-enum  optionIndex {UNKNOWN, INPUT1, INPUT2, INSERT, KMER, OUTPUT, THRESHOLD, PROCESSORS, REPEAT_FREQUENCY, MIN_FREQUENCY, FREQUENCY_DIF, SMALL_GRAPH, BIG_GRAPH, NB_SMALL_GRAPH, MAX_PATHS, EROSION, BUBBLE_SIZE, MIN_LTR, MAX_LTR, MAX_IDENTITY, MIN_OVERLAP, MAX_OVERLAP, SHORT_KMER, INDEL_PEN, MISMATCH_PEN, SIZE_PEN, MAX_PEN, MIN_IDENTITY, MERGE_MAX_NB, MIN_SCAFFOLD, MAX_SCAFFOLD, SCAFFOLD_MAX_EV, MAX_EVIDENCES, MIN_TE_SIZE, MAX_TE_SIZE, BYTES_PER_THREAD, MAX_KMERS, MAX_READS, CHECK, HELP, VERSION};
+enum  optionIndex {UNKNOWN, INPUT1, INPUT2, INSERT, KMER, OUTPUT, THRESHOLD, PROCESSORS, REPEAT_FREQUENCY, MIN_FREQUENCY, FREQUENCY_DIF, SMALL_GRAPH, BIG_GRAPH, NB_SMALL_GRAPH, MAX_PATHS, EROSION, BUBBLE_SIZE, MIN_LTR, MAX_LTR, MAX_IDENTITY, MIN_OVERLAP, MAX_OVERLAP, SHORT_KMER, INDEL_PEN, MISMATCH_PEN, SIZE_PEN, MAX_PEN, MIN_IDENTITY, MERGE_MAX_NB, MERGE_MAX_NODES, MIN_SCAFFOLD, MAX_SCAFFOLD, SCAFFOLD_MAX_EV, MAX_EVIDENCES, MIN_TE_SIZE, MAX_TE_SIZE, FASTA_INPUT, BYTES_PER_THREAD, MAX_KMERS, MAX_READS, CHECK, HELP, VERSION};
 const option::Descriptor usage[] = {
 	{UNKNOWN,          0, "" , ""                  , option::Arg::None    , "USAGE: tedna [options]\n\n" "Compulsory options:"},
 	{INPUT1,           0, "1", "file1"             , option::Arg::Required, "  -1, --file1  \tFirst FASTQ file."},
-	{INPUT2,           0, "2", "file2"             , option::Arg::Required, "  -2, --file2  \tSecond FASTQ file."},
-	{INSERT,           0, "i", "insert"            , option::Arg::Numeric,  "  -i, --insert \tInsert size."},
 	{KMER,             0, "k", "kmer"              , option::Arg::Numeric,  "  -k, --kmer   \tK-mer size."},
 	{OUTPUT,           0, "o", "output"            , option::Arg::Required, "  -o, --output \tOutput file."},
 	{UNKNOWN,          0, "" ,  ""                 , option::Arg::None    , "\nOther options:"},
+	{INPUT2,           0, "2", "file2"             , option::Arg::Required, "  -2, --file2        \tSecond FASTQ file."},
+	{INSERT,           0, "i", "insert"            , option::Arg::Numeric,  "  -i, --insert \tInsert size."},
 	{THRESHOLD,        0, "t", "threshold"         , option::Arg::Numeric,  "  -t, --threshold    \tK-mer frequency threshold   (default: ad hoc)."},
 	{MIN_TE_SIZE,      0, "m", "min-te-size"       , option::Arg::Numeric,  "  -m, --min-te-size  \tMinimum TE size             (default: 500)."},
 	{MAX_TE_SIZE,      0, "M", "max-te-size"       , option::Arg::Numeric,  "  -M, --max-te-size  \tMaximum TE size             (default: 30000)."},
@@ -63,12 +63,14 @@ const option::Descriptor usage[] = {
 	{SIZE_PEN,         0, "" , "size-pen"          , option::Arg::Numeric,  "  --size-pen           \tSize penalty                       (default: 1)."},
 	{MAX_PEN,          0, "" , "max-pen"           , option::Arg::Numeric , "  --max-pen            \tMaximum penalty                    (default: 200)."},
 	{MIN_IDENTITY,     0, "" , "min-id"            , option::Arg::Numeric , "  --min-id             \tMinimum identity                   (default: 80)."},
-	{MERGE_MAX_NB,     0, "" , "merge-max-nb"      , option::Arg::Numeric , "  --merge-max-nb       \tMaximum number of neighbor/node    (default: 10), 0: do not use."},
+	{MERGE_MAX_NB,     0, "" , "merge-max-nb"      , option::Arg::Numeric , "  --merge-max-nb       \tMaximum number of repeats          (default: 10000), 0: do not use."},
+	{MERGE_MAX_NODES,  0, "" , "merge-max-nodes"   , option::Arg::Numeric , "  --merge-max-nodes    \tMaximum number of neighbor/node    (default: 10), 0: do not use."},
 	{UNKNOWN,          0, "" ,  ""                 , option::Arg::None    , "\n  scaffolding:"},                                       
 	{MIN_SCAFFOLD,     0, "" , "min-scaffold"      , option::Arg::Numeric , "  --min-scaffold       \tMinimum number of evidences/scaff. (default: 100)."},
 	{MAX_SCAFFOLD,     0, "" , "max-scaffold"      , option::Arg::Numeric , "  --max-scaffold       \tMaximum number of evidences/scaff. (default: 10000)."},
 	{SCAFFOLD_MAX_EV,  0, "" , "scaffold-max-nb"   , option::Arg::Numeric , "  --scaffold-max-nb    \tMaximum number of neighbor/node    (default: 5), 0: do not use."},
 	{UNKNOWN,          0, "" ,  ""                 , option::Arg::None    , "\n  input reading:"},                                             
+	{FASTA_INPUT,      0, "" , "fasta"             , option::Arg::None    , "  --fasta-input        \tInput file is in FASTA format      (default: not set)."},
 	{BYTES_PER_THREAD, 0, "" , "bytes-per-thread"  , option::Arg::Numeric , "  --bytes-per-thread   \tNumber of bytes read per thread    (default: 10000000)."},
 	{MAX_READS,        0, "" , "max-reads"         , option::Arg::Numeric , "  --max-reads          \tMaximum number of reads read       (default: 0), 0: read all."},
 	{CHECK,            0, "" , "check"             , option::Arg::Optional, "  --check              \tCheck if a sequence is assembled   (default: none)."},
@@ -119,35 +121,32 @@ int main(int argc, char **argv) {
 		cout << "Error: cannot open first input FASTQ file ('" << options[INPUT1].arg << "')." << endl;
 		return 1;
 	}
-	if (! options[INPUT2]) {
-		cout << "Error: second input FASTQ file is missing." << endl;
-		option::printUsage(std::cout, usage);
-		return 1;
-	}
-	ifstream g(options[INPUT2].arg);
+	if (options[INPUT2]) {
+    ifstream g(options[INPUT2].arg);
     if (g.good()) {
         g.close();
-	}
-	else {
-		cout << "Error: cannot open second input FASTQ file ('" << options[INPUT2].arg << "')." << endl;
-		return 1;
+    }
+    else {
+      cout << "Error: cannot open second input FASTQ file ('" << options[INPUT2].arg << "')." << endl;
+      return 1;
+    }
 	}
 	if (! options[OUTPUT]) {
 		cout << "Error: output file is missing." << endl;
 		option::printUsage(std::cout, usage);
 		return 1;
 	}
-	if (! options[INSERT]) {
+	if ((! options[INSERT]) && (options[INPUT2])) {
 		cout << "Error: insert size is missing." << endl;
 		option::printUsage(std::cout, usage);
 		return 1;
 	}
 
-	const char  *fileName1      = options[INPUT1].arg;
-	const char  *fileName2      = options[INPUT2].arg;
-	const char  *outputFileName = options[OUTPUT].arg;
-	int          insertSize     = atoi(options[INSERT].arg);
-	int          thresholdPc    = -1;
+	const char* fileName1      = options[INPUT1].arg;
+	const char* fileName2      = (options[INPUT2])? options[INPUT2].arg: nullptr;
+	const char *outputFileName = options[OUTPUT].arg;
+	int         insertSize     = (options[INSERT])? atoi(options[INSERT].arg): 0;
+	int         thresholdPc    = -1;
 
 	if (options[KMER])
 		Globals::KMER = strtoul(options[KMER].arg, NULL, 0);
@@ -203,12 +202,18 @@ int main(int argc, char **argv) {
 		Globals::MAX_PENALTY = atoi(options[MAX_PEN].arg);
 	if (options[MIN_IDENTITY])
 		Globals::MIN_IDENTITY = atoi(options[MIN_IDENTITY].arg) / 100.0;
+	if (options[MERGE_MAX_NB])
+		Globals::MERGE_MAX_NB = atoi(options[MERGE_MAX_NB].arg);
+	if (options[MERGE_MAX_NODES])
+		Globals::MERGE_MAX_NODES = atoi(options[MERGE_MAX_NODES].arg);
 	if (options[MIN_SCAFFOLD])
 		Globals::MIN_SCAFFOLD_KMERS = strtoul(options[MIN_SCAFFOLD].arg, NULL, 0);
 	if (options[MAX_SCAFFOLD])
 		Globals::MAX_SCAFFOLD_COUNTS = strtoul(options[MAX_SCAFFOLD].arg, NULL, 0);
 	if (options[SCAFFOLD_MAX_EV])
 		Globals::SCAFFOLD_MAX_EV = strtoul(options[SCAFFOLD_MAX_EV].arg, NULL, 0);
+	if (options[FASTA_INPUT])
+		Globals::FASTA_INPUT = true;
 	if (options[BYTES_PER_THREAD])
 		Globals::SIZE_THREAD = atol(options[BYTES_PER_THREAD].arg);
 	if (options[MAX_READS])

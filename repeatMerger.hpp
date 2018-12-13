@@ -93,18 +93,19 @@ class ComparisonData {
 
 class RepeatMerger {
 
-    private:
-		ComparisonData ****_comparisons;
-		KmerNb             _minCount;
-		KmerSet*           _kmerSets;
-		Repeats            _inputRepeats;
-		Repeats            _outputRepeats;
-		Penalty            _maxPenalty;
+	private:
+		unsigned int _size;
+		KmerNb       _minCount;
+		KmerSet*     _kmerSets;
+		Repeats      _inputRepeats;
+		Repeats      _outputRepeats;
+		Penalty      _maxPenalty;
+		vector < vector < array < array < ComparisonData, Globals::POSITIONS > , Globals::DIRECTIONS > > > _comparisons;
 
-    public:
-        RepeatMerger (const Repeats &repeats, const KmerNb minCount = 0);
+	public:
+		RepeatMerger (const Repeats &repeats, const KmerNb minCount = 0);
 		void addRepeat (const Sequence &sequence, const KmerNb count);
-        void mergeRepeats ();
+		void mergeRepeats ();
 		void report ();
 		Repeats &getRepeats();
 

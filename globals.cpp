@@ -31,10 +31,12 @@ Penalty        Globals::PENALTY_INDEL            = 30;
 Penalty        Globals::MAX_PENALTY              = 500;
 float          Globals::MIN_IDENTITY             = 0.8;
 float          Globals::MAX_IDENTITY             = 0.3;
-unsigned int   Globals::MERGE_MAX_NB             = 10;
+unsigned int   Globals::MERGE_MAX_NB             = 10000;
+unsigned int   Globals::MERGE_MAX_NODES          = 10;
 unsigned long  Globals::MIN_SCAFFOLD_KMERS       = 10;
 unsigned long  Globals::MAX_SCAFFOLD_COUNTS      = 10000000;
 unsigned int   Globals::SCAFFOLD_MAX_EV          = 5;
+bool           Globals::FASTA_INPUT              = false;
 string         Globals::CHECK;
 
-const string Globals::VERSION = "1.2.2";
+const string Globals::VERSION = "1.2.4";

@@ -19,6 +19,7 @@ along with this program.
 
 #include <mutex>
 #include <thread>
+#include <chrono>
 #include "assembler.hpp"
 #include "graphRepeatFinder.hpp"
 #include "loopOpener.hpp"
@@ -43,42 +44,54 @@ void Assembler::assemble () {
 	removeShortRepeats();
 }
 
+void task (SimpleKmerCount &kmerCount, const char *fileName, int &partId, unsigned long &nbReads, mutex &m1, mutex &m2) {
+  FastxParser *parser;
+	if (Globals::FASTA_INPUT) {
+		parser = new FastaParser(fileName);
+	}
+	else {
+		parser = new FastqParser(fileName);
+	}
+  unsigned long cpt = 0;
+  while (! parser->isAllRead()) {
+    unsigned long thisPartId;
+    {
+      lock_guard<mutex> lock(m1);
+      thisPartId = partId;
+      ++partId;
+      nbReads  += parser->getReadId();
+    }
+    if (cpt > 0) {
+      cout << "\t" << nbReads << " reads read" << endl;
+    }
+    if ((Globals::NB_READS != 0) && (nbReads > Globals::NB_READS)) {
+      cout << "\tRead enough reads." << endl;
+      return;
+    }
+    parser->goTo(thisPartId * Globals::SIZE_THREAD, (thisPartId != 0));
+    parser->endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
+    for (cpt = 0; ! parser->isOver(); parser->getNextKmer(), cpt++) {
+      kmerCount.addKmer(parser->getWord(), m2);
+    }
+  }
+	delete parser;
+}
+
 void Assembler::readFiles () {
 	const char *fileNames[] = {_fileName1, _fileName2};
-	vector <thread> threads(Globals::NB_THREADS);
+  int nbFiles = (_fileName2 == nullptr)? 1: 2;
+	vector <thread> threads;
 	mutex m1, m2;
 	unsigned long nbReads = 0;
-	for (int fileId = 0; fileId < 2; fileId++) {
-		int  partId = 0;
+	for (int fileId = 0; fileId < nbFiles; fileId++) {
+		int partId = 0;
 		const char *fileName = fileNames[fileId];
+    threads.clear();
+    threads.reserve(Globals::NB_THREADS);
 		if ((Globals::NB_READS == 0) || (nbReads < Globals::NB_READS)) {
-			cout << "Reading file " << (fileId+1) << "..." << endl;
+			cout << "Reading file " << (fileId+1) << ": '"  << fileName << "'..." << endl;
 			for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
-				threads[threadId] = thread([this, fileName, &partId, &nbReads, &m1, &m2]() {
-					FastqParser parser(fileName);
-					unsigned long cpt = 0;
-					while (! parser.isAllRead()) {
-						unsigned long thisPartId;
-						{
-							lock_guard<mutex> lock(m1);
-							thisPartId = partId;
-							++partId;
-							nbReads  += parser.getReadId();
-						}
-						if (cpt > 0) {
-							cout << "\t" << nbReads << " reads read" << endl;
-						}
-						if ((Globals::NB_READS != 0) && (nbReads > Globals::NB_READS)) {
-							cout << "\tRead enough reads." << endl;
-							return;
-						}
-						parser.goTo(thisPartId * Globals::SIZE_THREAD, (thisPartId != 0));
-						parser.endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
-						for (cpt = 0; ! parser.isOver(); parser.getNextKmer(), cpt++) {
-							_kmerCount.addKmer(parser.getWord(), m2);
-						}
-					}
-				});
+				threads.emplace_back(task, ref(_kmerCount), fileName, ref(partId), ref(nbReads), ref(m1), ref(m2));
 			}
 			for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
 				threads[threadId].join();
@@ -168,7 +181,7 @@ void Assembler::mergeRepeats () {
 
 void Assembler::scaffoldRepeats () {
 	//cout << "Scaffolding repeats with\n" << _repeats << endl;
-	if (_repeats.getNbRepeats() > 1) {
+	if ((_fileName2 != nullptr) && (_repeats.getNbRepeats() > 1)) {
 		Scaffolder s (_repeats, _fileName1, _fileName2, _insertSize);
 		s.scaffold();
 		_repeats = s.getRepeats();

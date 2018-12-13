@@ -17,7 +17,7 @@ along with this program.
 #define ASSEMBLER_HPP 1
 
 #include <iostream>
-#include "fastqParser.hpp"
+#include "fastxParser.hpp"
 #include "simpleKmerCount.hpp"
 #include "repeats.hpp"
 using namespace std;

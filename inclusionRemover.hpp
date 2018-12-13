@@ -30,9 +30,6 @@ class InclusionRemover {
     private:
 		vector <KmerSet> _kmerSets;
 		Repeats  _repeats;
-		int      _i, _j;
-		short    _direction, _position;
-		KmerNb   _minCount;
 
     public:
         InclusionRemover (const Repeats &repeats);

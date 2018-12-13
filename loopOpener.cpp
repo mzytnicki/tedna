@@ -21,7 +21,7 @@ along with this program.
 #include <thread>
 #include "loopOpener.hpp"
 #include "kmerIterator.hpp"
-#include "fastqParser.hpp"
+#include "fastxParser.hpp"
 
 LoopOpener::LoopOpener(const char *fileName, const Repeats &repeats): _fileName(fileName), _repeats(repeats), _nbLoops(0) { }
 
@@ -77,10 +77,16 @@ void LoopOpener::readReads() {
 	unsigned long nbReads = 0;
 	for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
 		threads[threadId] = thread([this, &partId, &nbReads, &m1, &m2, &m3]() {
-			FastqParser parser(_fileName);
+			FastxParser *parser;
+			if (Globals::FASTA_INPUT) {
+				parser = new FastaParser(_fileName);
+			}
+			else {
+				parser = new FastqParser(_fileName);
+			}
 			Kmer currentKmer;
 			KmerCode currentCode;
-			while (! parser.isAllRead()) {
+			while (! parser->isAllRead()) {
 				long unsigned thisPartId;
 				if (nbReads > 0) {
 					cout << "\t" << nbReads << " reads read." << endl;
@@ -92,13 +98,13 @@ void LoopOpener::readReads() {
 				{
 					lock_guard<mutex> lock(m1);
 					thisPartId = partId;
-					nbReads   += parser.getReadId();
+					nbReads   += parser->getReadId();
 					++partId;
 				}
-				parser.goTo(thisPartId * Globals::SIZE_THREAD, (thisPartId != 0));
-				parser.endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
-				for (unsigned long i = 0; !parser.isOver(); i++, parser.getNextKmer()) {
-					currentKmer = Kmer(parser.getSequence());
+				parser->goTo(thisPartId * Globals::SIZE_THREAD, (thisPartId != 0));
+				parser->endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
+				for (unsigned long i = 0; !parser->isOver(); i++, parser->getNextKmer()) {
+					currentKmer = Kmer(parser->getSequence());
 					currentCode = currentKmer.getFirstCode();
 					if (_count.find(currentCode) != _count.end()) {
 						lock_guard<mutex> lock(m2);
@@ -106,6 +112,7 @@ void LoopOpener::readReads() {
 					}
 				}
 			}
+			delete parser;
 		});
 	}
 	for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {

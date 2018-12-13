@@ -100,6 +100,7 @@ class Repeats {
 		unsigned int getNbRepeats () const;
 		void sort ();
 		void cutToThreshold (const KmerNb threshold);
+		void cutToNLongest (const unsigned int nb);
 		const CountedRepeat &getRepeat (const int i) const;
 		const CountedRepeat &operator[] (const int i) const;
 		const bool empty () const;

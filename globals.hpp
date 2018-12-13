@@ -68,9 +68,11 @@ class Globals {
 		static float          MIN_IDENTITY;
 		static float          MAX_IDENTITY;
 		static unsigned int   MERGE_MAX_NB;
+		static unsigned int   MERGE_MAX_NODES;
 		static unsigned long  MIN_SCAFFOLD_KMERS;
 		static unsigned long  MAX_SCAFFOLD_COUNTS;
 		static unsigned int   SCAFFOLD_MAX_EV;
+		static bool           FASTA_INPUT;
 		static string         CHECK;
 
 		static char getComplement(const char c) {

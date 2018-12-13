@@ -25,7 +25,7 @@ along with this program.
 #include <thread>
 #include "globals.hpp"
 #include "repeats.hpp"
-#include "fastqParser.hpp"
+#include "fastxParser.hpp"
 #include "sequenceGraph.hpp"
 using namespace std;
 
@@ -52,7 +52,7 @@ class Scaffolder {
 		void storeKmers ();
 		//void buildStructure ();
 		void fillStructure ();
-		void fillStructure (FastqParser &parser1, FastqParser &parser2, mutex &m);
+		void fillStructure (FastxParser *parser1, FastxParser *parser4, mutex &m);
 		//void removeWeakLinks ();
 		//void computeMode();
 		int computeMode(const vector < int > &distances) const;

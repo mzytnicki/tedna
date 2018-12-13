@@ -19,22 +19,22 @@ Simplex::Simplex(int nbConstraints, int nbVariables):
 
 // Read accessor to a coefficient
 const Rational& Simplex::getCoeff(unsigned int l, unsigned int c) const {
-	if (0 <= l && l < _lin && 0 <= c && c < _col) {
+	if (l < _lin && c < _col) {
 		return _coeffarray[l * _col + c];
 	}
 	else {
-		cerr << "Error in Simplex::getCoeff" << endl;
+		cerr << "Error in Simplex::getCoeff: cell (" <<  l << ", " << c << ") is out of bound (" << _lin << ", " << _col << ")" << endl;
 		return _coeffarray[0];
 	}
 }
 
 // Write accessor to a coefficient
 void Simplex::setCoeff(unsigned int l, unsigned int c, const Rational &r) {
-	if (0 <= l && l < _lin && 0 <= c && c < _col) {
+	if (l < _lin && c < _col) {
 		_coeffarray[l * _col + c] = r;
 	}
 	else {
-		cerr << "Error in Simplex::setCoeff" << endl;
+		cerr << "Error in Simplex::setCoeff: cell (" <<  l << ", " << c << ") is out of bound (" << _lin << ", " << _col << ")" << endl;
 	}
 }
 

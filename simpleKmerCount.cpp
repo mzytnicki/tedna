@@ -21,8 +21,6 @@ along with this program.
 #include "globals.hpp"
 #include "simpleKmerCount.hpp"
 
-static const KmerNb MAX_KMER_NB = numeric_limits<KmerNb>::max();
-
 SimpleKmerCount::SimpleKmerCount(): _maxCount(0), _minCount(0), _nbValues(0) { }
 
 void SimpleKmerCount::addKmer(const Kmer &kmer, bool insert) {

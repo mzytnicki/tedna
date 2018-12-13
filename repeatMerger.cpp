@@ -25,27 +25,41 @@ along with this program.
 #include "repeatMerger.hpp"
 #include "graphTrimmer.hpp"
 
-RepeatMerger::RepeatMerger(const Repeats &repeats, const KmerNb minCount): _minCount(minCount), _inputRepeats(repeats), _maxPenalty(numeric_limits<Penalty>::max())  {
-	for (unsigned int i = 0; i < _inputRepeats.getNbRepeats(); i++) {
-		if (_inputRepeats.getRepeat(i).getSize() <= Globals::MIN_MERGE_SIZE) {
-			_inputRepeats.removeRepeat(i);
-		}
-	}
-	_inputRepeats.cutToThreshold(_minCount);
-}
+RepeatMerger::RepeatMerger(const Repeats &repeats, const KmerNb minCount): _size(repeats.getNbRepeats()), _minCount(minCount), _inputRepeats(repeats), _maxPenalty(numeric_limits<Penalty>::max()), _comparisons(_size)  {}
 
 void RepeatMerger::addRepeat (const Sequence &repeat, const KmerNb count) {
 	_inputRepeats.addRepeat(repeat, count);
 }
 
 void RepeatMerger::mergeRepeats () {
-	cout << "Merging repeats (" << _inputRepeats.getNbRepeats() << " elements)..." << endl;
+	cout << "Merging repeats (" << _size << " elements)..." << endl;
+	for (unsigned int i = 0; i < _size; i++) {
+		if (_inputRepeats.getRepeat(i).getSize() <= Globals::MIN_MERGE_SIZE) {
+			_inputRepeats.removeRepeat(i);
+		}
+	}
+	if (_inputRepeats.getNbRepeats() < _size) {
+		_size = _inputRepeats.getNbRepeats();
+		cout << "\tShrinking to " << _size << " elements (the rest has size < " << Globals::MIN_MERGE_SIZE << ")." << endl;
+	}
+	_inputRepeats.cutToThreshold(_minCount);
+	if (_inputRepeats.getNbRepeats() < _size) {
+		_size = _inputRepeats.getNbRepeats();
+		cout << "\tShrinking to " << _size << " elements (the rest has frequency < " << _minCount << ")." << endl;
+	}
+	if (Globals::MERGE_MAX_NB > 0) {
+		_inputRepeats.cutToNLongest(Globals::MERGE_MAX_NB);
+		if (_inputRepeats.getNbRepeats() < _size) {
+			_size = _inputRepeats.getNbRepeats();
+			cout << "\tShrinking to " << _size << " elements (cannot handle too many elements)." << endl;
+		}
+	}
 	buildStructure();
 	//cout << "\tcomparing all repeats..." << endl;
 	fillStructure();
 	//cout << "\t... done." << endl;
 	//cout << *this << endl;
-	if (Globals::MERGE_MAX_NB != 0) {
+	if (Globals::MERGE_MAX_NODES != 0) {
 		resetMaxPenalty();
 		if (_maxPenalty != numeric_limits<Penalty>::max()) {
 			cout << "\tMax penalty adjusted to " << _maxPenalty << endl;
@@ -62,40 +76,20 @@ void RepeatMerger::mergeRepeats () {
 }
 
 void RepeatMerger::buildStructure () {
-	_comparisons = new ComparisonData***[_inputRepeats.getNbRepeats()];
-	for (unsigned int i = 1; i < _inputRepeats.getNbRepeats(); i++) {
-		_comparisons[i] = NULL;
-	}
-	_kmerSets = new KmerSet[_inputRepeats.getNbRepeats()];
-	for (unsigned int i = 0; i < _inputRepeats.getNbRepeats(); i++) {
+	_kmerSets = new KmerSet[_size];
+	for (unsigned int i = 0; i < _size; i++) {
 		_kmerSets[i].setSequence(_inputRepeats[i].getRepeat().getFirstWord());
 	}
 }
 
 void RepeatMerger::cleanStructure () {
-	for (unsigned int i = 1; i < _inputRepeats.getNbRepeats(); i++) {
-		if (_comparisons[i] != NULL) {
-			for (unsigned int j = 0; j < i; j++) {
-				if (_comparisons[i][j] != NULL) {
-					for (int k = 0; k < Globals::DIRECTIONS; k++) {
-						if (_comparisons[i][j][k] != NULL) {
-							delete[] _comparisons[i][j][k];
-						}
-					}
-					delete[] _comparisons[i][j];
-				}
-			}
-			delete[] _comparisons[i];
-		}
-	}
-	delete[] _comparisons;
 	delete[] _kmerSets;
 }
 
 void RepeatMerger::fillStructure () {
 	/*
 	if (_j != static_cast<unsigned int>(-1)) {
-		for (unsigned int i = 0; i < _inputRepeats.getNbRepeats(); i++) {
+		for (unsigned int i = 0; i < _size; i++) {
 			for (int k = 0; k < Globals::DIRECTIONS; k++) {
 				for (int l = 0; l < Globals::POSITIONS; l++) {
 					if (_j < i) {
@@ -115,7 +109,7 @@ void RepeatMerger::fillStructure () {
 	for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
 		threads[threadId] = thread([this, &i, &j, &cpt, &m]() {
 			SequenceComparator comparator;
-			unsigned int thisI, thisJ, thisCpt, nbRepeats = _inputRepeats.getNbRepeats();
+			unsigned int thisI, thisJ, thisCpt, nbRepeats = _size, nComparisons = _size * (_size) / 2;
 			while (true) {
 				{
 					lock_guard<mutex> lock(m);
@@ -137,7 +131,7 @@ void RepeatMerger::fillStructure () {
 				}
 				compare(comparator, thisI, thisJ);
 				if (thisCpt % 10000 == 0) {
-					cout << "\t" << cpt << " comparisons." << endl;
+					cout << "\t" << thisCpt << "/" << nComparisons << " comparisons." << endl;
 				}
 			}
 		});
@@ -187,7 +181,7 @@ void RepeatMerger::resetMaxPenalty () {
 	Penalty minPenalty    = numeric_limits<Penalty>::max();
 	Penalty maxPenalty    = 0;
 	Penalty middlePenalty = 0;
-	for (unsigned int i = 1; i < _inputRepeats.getNbRepeats(); i++) {
+	for (unsigned int i = 1; i < _size; i++) {
 		for (unsigned int j = 0; j < i; j++) {
 			for (int k = 0; k < Globals::DIRECTIONS; k++) {
 				for (int l = 0; l < Globals::POSITIONS; l++) {
@@ -219,7 +213,7 @@ void RepeatMerger::resetMaxPenalty () {
 void RepeatMerger::buildGraphs() {
 	set    < unsigned int > pastNodes;
 	vector < unsigned int > currentNodes;
-	for (unsigned int start = 0; start < _inputRepeats.getNbRepeats(); start++) {
+	for (unsigned int start = 0; start < _size; start++) {
 		if ((! _inputRepeats.isRemoved(start)) && (pastNodes.find(start) == pastNodes.end())) {
 			//cout << "\t\tStarting with " << start << endl;
 			currentNodes.clear();
@@ -228,7 +222,7 @@ void RepeatMerger::buildGraphs() {
 			currentNodes.push_back(start);
 			for (unsigned int currentIndex = 0; currentIndex < currentNodes.size(); currentIndex++) {
 				unsigned int i = currentNodes[currentIndex];
-				for (unsigned int j = 0; j < _inputRepeats.getNbRepeats(); j++) {
+				for (unsigned int j = 0; j < _size; j++) {
 					if (j != i) {
 						for (int k = 0; k < Globals::DIRECTIONS; k++) {
 							for (int l = 0; l < Globals::POSITIONS; l++) {
@@ -473,7 +467,7 @@ Repeats &RepeatMerger::getRepeats () {
 
 bool RepeatMerger::underPenaltyThreshold (unsigned int threshold) const {
 	unsigned int nbNeighbors;
-	for (unsigned int i = 1; i < _inputRepeats.getNbRepeats(); i++) {
+	for (unsigned int i = 1; i < _size; i++) {
 		if (! _inputRepeats.isRemoved(i)) {
 			nbNeighbors = 0;
 			for (unsigned int j = 0; j < i; j++) {
@@ -487,7 +481,7 @@ bool RepeatMerger::underPenaltyThreshold (unsigned int threshold) const {
 					}
 				}
 			}
-			if (nbNeighbors > Globals::MERGE_MAX_NB) {
+			if (nbNeighbors > Globals::MERGE_MAX_NODES) {
 				return true;
 			}
 		}
@@ -512,13 +506,7 @@ bool RepeatMerger::isSet(unsigned int i, unsigned int j, short k, short l) const
 			l = 1-l;
 		}
 	}
-	if (_comparisons[i] == NULL) {
-		return false;
-	}
-	if (_comparisons[i][j] == NULL) {
-		return false;
-	}
-	if (_comparisons[i][j][k] == NULL) {
+	if (_comparisons[i].size() <= j) {
 		return false;
 	}
 	return (_comparisons[i][j][k][l].isSet());
@@ -533,21 +521,8 @@ void RepeatMerger::setCell(unsigned int i, unsigned int j, short k, short l, Seq
 	}
 	ComparisonData cd = ComparisonData(sc, first, second);
 	if ((cd.getScore() < Globals::MAX_PENALTY) && (cd.getIdentity() >= Globals::MIN_IDENTITY)) {
-		if (_comparisons[i] == NULL) {
-			_comparisons[i] = new ComparisonData**[i];
-			for (unsigned int jj = 0; jj < i; jj++) {
-				_comparisons[i][jj] = NULL;
-			}
-		}
-		if (_comparisons[i][j] == NULL) {
-			_comparisons[i][j] = new ComparisonData*[Globals::DIRECTIONS];
-			for (short kk = 0; kk < Globals::DIRECTIONS; kk++) {
-				_comparisons[i][j][kk] = NULL;
-			}
-		}
-		if (_comparisons[i][j][k] == NULL) {
-			_comparisons[i][j][k] = new ComparisonData[Globals::POSITIONS];
-			_comparisons[i][j][k][1-l] = ComparisonData();
+		if (_comparisons[i].empty()) {
+			_comparisons[i].resize(_size - i + 1);
 		}
 		_comparisons[i][j][k][l] = cd;
 	}
@@ -556,7 +531,7 @@ void RepeatMerger::setCell(unsigned int i, unsigned int j, short k, short l, Seq
 ostream& operator<<(ostream& output, const RepeatMerger& rm) {
 	output << "Input sequences:\n" << rm._inputRepeats;
 	output << "Output sequences:\n" << rm._outputRepeats;
-	for (unsigned int i = 1; i < rm._inputRepeats.getNbRepeats(); i++) {
+	for (unsigned int i = 1; i < rm._size; i++) {
 		for (unsigned int j = 0; j < i; j++) {
 			for (int k = 0; k < Globals::DIRECTIONS; k++) {
 				for (int l = 0; l < Globals::POSITIONS; l++) {

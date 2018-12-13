@@ -51,7 +51,7 @@ class Equation {
 			for (unsigned int i = 0; i < _pathes.size(); i++) {
 				score += values[_pathes[i]];
 			}
-			return static_cast<KmerNb>(abs(_count - score));
+			return static_cast<KmerNb>((_count > score)? _count - score: score - _count);
 		}
 };
 

@@ -105,10 +105,17 @@ void Scaffolder::fillStructure () {
 	unsigned long nbReads = 0;
 	for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
 		threads[threadId] = thread([this, &partId, &nbReads, &m1, &m2]() {
-			FastqParser parser1(_fileName1);
-			FastqParser parser2(_fileName2);
-			parser1.reset();
-			while (! parser1.isAllRead()) {
+			FastxParser *parser1, *parser2;
+			if (Globals::FASTA_INPUT) {
+				parser1 = new FastaParser(_fileName1);
+				parser2 = new FastaParser(_fileName2);
+			}
+			else {
+				parser1 = new FastqParser(_fileName1);
+				parser2 = new FastqParser(_fileName2);
+			}
+			parser1->reset();
+			while (! parser1->isAllRead()) {
 				unsigned long thisPartId;
 				if (nbReads > 0) {
 					cout << "\t" << nbReads << " pairs read." << endl;
@@ -120,15 +127,17 @@ void Scaffolder::fillStructure () {
 				{
 					lock_guard<mutex> lock(m1);
 					thisPartId = partId;
-					nbReads   += parser1.getReadId();
+					nbReads   += parser1->getReadId();
 					++partId;
 				}
-				parser1.goTo(thisPartId * Globals::SIZE_THREAD, (partId != 0));
-				parser1.endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
-				parser2.goTo(thisPartId * Globals::SIZE_THREAD, (partId != 0));
-				parser2.endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
+				parser1->goTo(thisPartId * Globals::SIZE_THREAD, (partId != 0));
+				parser1->endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
+				parser2->goTo(thisPartId * Globals::SIZE_THREAD, (partId != 0));
+				parser2->endTo((thisPartId+1) * Globals::SIZE_THREAD - 1);
 				fillStructure(parser1, parser2, m2);
 			}
+			delete parser1;
+			delete parser2;
 		});
 	}
 	for (int threadId = 0; threadId < Globals::NB_THREADS; threadId++) {
@@ -137,12 +146,12 @@ void Scaffolder::fillStructure () {
 	//cout << "done" << endl;
 }
 
-void Scaffolder::fillStructure (FastqParser &parser1, FastqParser &parser2, mutex &m) {
+void Scaffolder::fillStructure (FastxParser *parser1, FastxParser *parser2, mutex &m) {
 	//cout << _inputRepeats << endl;
-	for (; ! parser1.isOver(); parser1.getNextLine(), parser2.getNextLine()) {
+	for (; ! parser1->isOver(); parser1->getNextLine(), parser2->getNextLine()) {
 		//cout << "lines: " << parser1.getLine() << "\t" << parser2.getLine() << endl;
 		//string lines[] = {parser1.getLine(), parser2.getLine()};
-		string lines[] = {parser1.getLine(), Globals::getReverseComplement(parser2.getLine())};
+		string lines[] = {parser1->getLine(), Globals::getReverseComplement(parser2->getLine())};
 		if ((lines[0].size() >= Globals::KMER) && (lines[1].size() >= Globals::KMER)) {
 			vector < tuple < int, int, int, short > > positions2;
 			//cout << "Positions2" << endl;
