@@ -18,4 +18,6 @@ If you have long reads (such as PacBio), you can type:
 
     ./tedna -1 reads.fastq -k 61 -m 1000 -t 25 -o output.fasta
     
+Previous versions are available from the [URGI Website](https://urgi.versailles.inra.fr/Tools/Tedna).
+    
 Do no hesitate to [contact me](mailto:matthias.zytnicki@inra.fr) for any further question.
