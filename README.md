@@ -1,4 +1,4 @@
-# Tedna
+# Tedna 1.3.0
 
 This is the Tedna repository.
 
