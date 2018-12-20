@@ -39,4 +39,4 @@ unsigned int   Globals::SCAFFOLD_MAX_EV          = 5;
 bool           Globals::FASTA_INPUT              = false;
 string         Globals::CHECK;
 
-const string Globals::VERSION = "1.2.4";
+const string Globals::VERSION = "1.3.0";
