@@ -89,11 +89,10 @@ void Repeats::cutToThreshold(const KmerNb threshold) {
 
 void Repeats::cutToNLongest(const unsigned int n) {
 	sort();
-	RepeatsStructure repeats;
-	for (unsigned int i = 0; i < n; ++i) { 
-		repeats.push_back(_repeats[i]);
+	if (_repeats.size() < n) {
+		return;
 	}
-	_repeats = repeats;
+	_repeats.erase(_repeats.begin() + n, _repeats.end());
 }
 
 const CountedRepeat &Repeats::getRepeat(const int i) const {
