@@ -1,29 +1,9 @@
 # Tedna 1.3.0
 
-
-To use Tedna, clone it and type `make`.
-
-Type `./tedna -h` to get some info on the options.
-
-If you have paired-end reads with insert size 300, you can type:
-
-    ./tedna -1 left.fastq -2 right.fastq -k 61 -i 300 -o output.fasta
-    
-If you have long reads (such as PacBio), you can type:
-
-    ./tedna -1 reads.fastq -k 61 -m 1000 -t 25 -o output.fasta
-    
-Note: your reads file should not be compressed.
-    
-Previous versions are available from the [URGI Website](https://urgi.versailles.inra.fr/Tools/Tedna).
-    
-Do no hesitate to [contact me](mailto:matthias.zytnicki@inrae.fr) for any further question.
-
-
 ## Introduction
 
 Tedna is a simple transposable elements assembler.
-It reads a two FASTQ files, representing paired-end DNA-Seq data, and produces a FASTA file with the transposable elements it has assembled.
+It reads one or two FASTQ files, representing (possibly paired-end) DNA-Seq data, and produces a FASTA file with the transposable elements it has assembled.
 
 It has first been published in [Bioinformatics in 2014](https://academic.oup.com/bioinformatics/article/30/18/2656/2475636).
 
@@ -31,10 +11,20 @@ It also has been used in [Molecular Ecology in 2018](https://onlinelibrary.wiley
 
 ## Tedna at a glance
 
- - Get the sparsehash code.
- - Compile with make
- - Run Tedna: `./tedna -k 61 -1 left.fastq -2 right.fastq -i insert size -o tes.fasta`
+ - Clone the code with `git clone https://github.com/mzytnicki/tedna.git`
+ - Compile with `make`
+ - If you have paired-end reads with insert size 300, you can type:
+ 
+    `./tedna -1 left.fastq -2 right.fastq -k 61 -i 300 -o output.fasta`
+    
+ - If you have long reads (such as PacBio), you can type:
 
+    `./tedna -1 reads.fastq -k 61 -m 1000 -t 25 -o output.fasta`
+
+- Type `./tedna -h` to get some info on the options.
+
+**Note**: your reads file should not be compressed.
+    
 ## Install
 
 ### Requirements
@@ -50,21 +40,20 @@ For GCC, compilers older than version 4.6 will not work.
 You can also compile with Clang.
 Version 3.0 should also work.
 
-If sparsehash is not found while compiling, try adding `-I/usr/local/include`
-in the compiler flags in the Makefile.
+If `sparsehash` is not found while compiling, try adding `-I/usr/local/include` in the compiler flags in the `Makefile`.
 
 ### Hash implementation choice
 
 Tedna makes heavy use of a hash table.
-Three of them are offered: `sparsehash-sparse`, default C++11 hash, and sparsehash-dense.
-The first and the last are provided by the sparsehash package, and the second one is provided by C++11.
+Three of them are offered: `sparsehash-sparse`, default C++11 hash, and `sparsehash-dense`.
+The first and the last are provided by the `sparsehash package`, and the second one is provided by C++11.
 The first implementation is the slowest one, but requires least memory, whereas the last implementation is fast but requires lots of memory.
 The second one is somewhere between the two.
 Choosing which implementation is up to you, but you have to choose at compile time.
 Type `make HASH=SLOW`, `make HASH=MID`, or `make HASH=FAST` to choose your implementation.
 By default, the slowest implementation is chosen.
 
-### k-mer size choice
+### *k*-mer size choice
 
 As you will see by reading the rest of the manual, Tedna relies on the choice of a good *k*-mer size.
 The maximum size is determined at compilation time.
@@ -327,6 +316,10 @@ Tedna may not be able to find the genome coverage (see Fig. 1) for two reasons:
    You should then clean your reads by trimming the 3’ ends or discarding poorly sequenced reads (*e.g.* with the FASTX-Toolkit).
    I do not endorse any third-party tool.
 
+## Previous version
+
+Previous versions are available from the [URGI Website](https://urgi.versailles.inra.fr/Tools/Tedna).
+    
 ## Contact
 
 In case of question, suggestion for improvement, or any other enquiry, do not hesitate to contact me: matthias.zytnicki@inrae.fr.
