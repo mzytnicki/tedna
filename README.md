@@ -132,6 +132,8 @@ Most of the pipe-line may use several processors.
 
 `-p`, `--processors` number of processors
 
+`-v`, `--version` print the version number and exit
+
 ### Other details
 
 #### Reads parsing
