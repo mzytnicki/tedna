@@ -17,7 +17,7 @@ Note: your reads file should not be compressed.
     
 Previous versions are available from the [URGI Website](https://urgi.versailles.inra.fr/Tools/Tedna).
     
-Do no hesitate to [contact me](mailto:matthias.zytnicki@inra.fr) for any further question.
+Do no hesitate to [contact me](mailto:matthias.zytnicki@inrae.fr) for any further question.
 
 
 ## Introduction
@@ -80,24 +80,24 @@ By default, the size is set to 61.
 This manual describes each step of Tedna's execution, and describes in detail all the parameters it uses.
 There is no hard-coded parameter in Tedna.
 The most useful parameters have a long version (`--help`) and a short version (`-h`).
-Compulsory options are denoted with a start (\*).
+Compulsory options are denoted with a start (**\***).
 For instance, a brief description of the options can be obtained with `./tedna -h` or `./tedna --help`.
 
 Tedna reads one or two FASTQ files.
 Each file should represent the reads a paired-end sequencing.
 
-`-1`, `--file1` \* first FASTQ file (used for paired-end short reads, or long reads),
+`-1`, `--file1` **\*** first FASTQ file (used for paired-end short reads, or long reads),
 
 `-2`, `--file2` second FASTQ file (used for paired-end short reads only).
 
 The insert size between the paired-ends reads should also be provided.
 
-`-i`, `--insert` \* the insert size.
+`-i`, `--insert` **\*** the insert size.
 
 Tedna then builds a de Bruijn graph, a data structure which has been often used in assemblers.
 De Bruijn graphs collect the so-called *k*-mers: the set of sub-words of size *k* you can find in the reads.
 
-`-k`, `--kmer` \* the k-mer size.
+`-k`, `--kmer` **\*** the k-mer size.
 
 It is specially crucial and difficult to find a good *k*-mers size.
 Trial and error usually is a good option.
@@ -105,10 +105,13 @@ If you are in a hurry, you could consider trying 61.
 
 Tedna finally creates a new FASTA file, with the transposable elements it has found.
 
-`-o`, `--output` \* the FASTA output file.
+`-o`, `--output` **\*** the FASTA output file.
 
-Figure 1: An ideal k-mer frequency distribution.
-A point (*x*, *y*) means that *y* different *k*-mers have been found *x* times in the reads.
+| ![Peak distribution](/images/peaks.png) |
+|:--:|
+| *Figure 1*: An ideal *k*-mer frequency distribution. |
+
+In Figure 1, a point (*x*, *y*) means that *y* different *k*-mers have been found *x* times in the reads.
 *k*-mers on the very left of the distribution are supposed to be sequencing errors: every *k*-mer is found only once or twice.
 The maximum of the distribution is supposed to be the genome coverage.
 A genome with more than 50% of repeated sequences is not expected to have that shape, and thus Tedna will not be able to find the genome coverage.
