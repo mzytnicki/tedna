@@ -18,7 +18,7 @@ along with this program.
 #endif
 
 #include <cmath>
-#include <stack>
+#include <vector>
 #include <algorithm>
 #include "globals.hpp"
 #include "graphTrimmer.hpp"
@@ -93,16 +93,16 @@ void GraphTrimmer::mergeNodes() {
 	//cout << "Merging " << _graph.getSize() << " nodes..." << endl;
 	//cout << _graph << endl;
 	int nbMerges = 0;
-	stack <unsigned int> toBeMerged;
+	vector <unsigned int> toBeMerged;
 	for (unsigned int i = 0; i < _graph.getSize(); i++) {
 		if (_graph.getNode(i).isSet()) {
-			toBeMerged.push(i);
+			toBeMerged.push_back(i);
 		}
 	}
 	while (! toBeMerged.empty()) {
-		unsigned int  i  = toBeMerged.top();
+		unsigned int  i  = toBeMerged.back();
 		SequenceNode &n1 = _graph.getNode(i);
-		toBeMerged.pop();
+		toBeMerged.pop_back();
 		if (n1.isSet()) {
 			bool merged = false;
 			//cout << "Inspecting node " << i << endl;
@@ -163,7 +163,7 @@ void GraphTrimmer::mergeNodes() {
 							}
 							n2.unset();
 							nbMerges++;
-							toBeMerged.push(i);
+							toBeMerged.push_back(i);
 							merged = true;
 						}
 					}

@@ -16,6 +16,7 @@ along with this program.
 #ifndef REPEAT_MERGER_HPP
 #define REPEAT_MERGER_HPP 1
 
+#include <array>
 #include <vector>
 #include <iostream>
 #include "globals.hpp"

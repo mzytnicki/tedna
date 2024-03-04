@@ -5,6 +5,8 @@
 #include "globals.hpp"
 
 
+const string         Globals::VERSION                 { "1.3.1" };
+
 unsigned short Globals::KMER                     = 61;
 int            Globals::NB_THREADS               = 2;
 long           Globals::SIZE_THREAD              = 10000000;
@@ -38,5 +40,3 @@ unsigned long  Globals::MAX_SCAFFOLD_COUNTS      = 10000000;
 unsigned int   Globals::SCAFFOLD_MAX_EV          = 5;
 bool           Globals::FASTA_INPUT              = false;
 string         Globals::CHECK;
-
-const string Globals::VERSION = "1.3.0";

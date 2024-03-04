@@ -27,19 +27,19 @@ typedef unsigned short Penalty;
 class Globals {
 
 	public:
-		static const int          NB_BLOCKS            = PRE_NB_BLOCKS;
-		static const short        NB_BITS_NUCLEOTIDES  = 2;
-		static const short        NUCLEOTIDE_MASK      = 3;
-		static const short        NB_NUCLEOTIDES       = 4;
-		static const short        DIRECT               = 0;
-		static const short        REVERSE              = 1;
-		static const short        DIRECTIONS           = 2;
-		static const short        AFTER                = 0;
-		static const short        BEFORE               = 1;
-		static const short        POSITIONS            = 2;
-		static const uint32_t     KEY_DELETED          = -1;
-		static const uint32_t     KEY_EMPTY            = -2;
-		static const string       VERSION;
+		static constexpr int          NB_BLOCKS            = PRE_NB_BLOCKS;
+		static constexpr short        NB_BITS_NUCLEOTIDES  = 2;
+		static constexpr short        NUCLEOTIDE_MASK      = 3;
+		static constexpr short        NB_NUCLEOTIDES       = 4;
+		static constexpr short        DIRECT               = 0;
+		static constexpr short        REVERSE              = 1;
+		static constexpr short        DIRECTIONS           = 2;
+		static constexpr short        AFTER                = 0;
+		static constexpr short        BEFORE               = 1;
+		static constexpr short        POSITIONS            = 2;
+		static constexpr uint32_t     KEY_DELETED          = -1;
+		static constexpr uint32_t     KEY_EMPTY            = -2;
+		static const     string       VERSION;
 
 		static unsigned short KMER;
 		static int            NB_THREADS;
