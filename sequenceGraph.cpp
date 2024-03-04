@@ -549,7 +549,7 @@ bool operator==(const SequencePath& p1, const SequencePath& p2) {
 }
 
 ostream& operator<<(ostream& output, const SequencePath& p) {
-	for (const tuple < short, short, int > &element: p._nodes) {
+	for (const tuple < short, short, unsigned int > &element: p._nodes) {
 		int id;
 		short position, direction;
 		tie(position, direction, id) = element;
