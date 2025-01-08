@@ -105,12 +105,12 @@ void Assembler::computeDistributions () {
 	_kmerCount.computeCountDistribution();
 	KmerNb maxCountDistribution = _kmerCount.getMaxCountDistribution();
 	cout << "\tmax count distribution: " << maxCountDistribution << " (min: " << Globals::MIN_COUNT << ")" << endl;
-	cout << "\tmax count: " << _kmerCount.getMaxCount() << endl;
+	cout << "\tmax count: " << _kmerCount.getMaxCountDistribution() << endl;
 	if ((maxCountDistribution == Globals::MIN_COUNT) && (_thresholdPc == -1)) {
 		cout << "Cannot determine maximum peak distribution. Please provide an expected repeated genome coverage." << endl;
 		exit(0);
 	}
-	_threshold = (_thresholdPc == -1)? maxCountDistribution * Globals::NB_REPETITIONS: _kmerCount.getThreshold(_thresholdPc);
+	_threshold = (_thresholdPc == -1)? maxCountDistribution * Globals::NB_REPETITIONS: _kmerCount.getThresholdIndex(_thresholdPc);
 	cout << "\tthreshold " << _thresholdPc << "%: " << _threshold << endl;
 	if (_threshold < Globals::MIN_COUNT) {
 		cout << "\t\tincreasing threshold to " << Globals::MIN_COUNT << endl;

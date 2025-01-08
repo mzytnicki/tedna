@@ -86,50 +86,30 @@ void SimpleKmerCount::computeCountDistribution() {
 		_maxCount = max<KmerNb>(_maxCount, it->second);
 		_nbValues += it->second;
 	}
-	_countDistribution.assign(_maxCount+1, 0);
+	_countDistribution.setMax(_maxCount);
 	for (auto it = _map.begin(); it != _map.end(); ++it) {
-		++_countDistribution[it->second];
+    _countDistribution.increase(it->second);
 	}
 }
 
 void SimpleKmerCount::printCountDistribution() const {
-	for (KmerNb nb = 0; nb <= _maxCount; ++nb) {
-		if (_countDistribution[nb] != 0) {
-			cout << "\t\t" << nb << ": " << _countDistribution[nb] << endl;
-		}
-	}
+  cout << _countDistribution;
 }
 
-void SimpleKmerCount::setMinCount(const KmerNb count) {
-	_minCount = count;
+void SimpleKmerCount::setMinCount (const KmerNb count) {
+  _countDistribution.setMin(count);
 }
 
-KmerNb SimpleKmerCount::getMaxCount() const {
-	return _maxCount;
+void SimpleKmerCount::setMaxCount (const KmerNb count) {
+  _countDistribution.setMax(count);
 }
 
-KmerNb SimpleKmerCount::getMaxCountDistribution() const {
-	KmerNb index = 0;
-	KmerNb value = 0;
-	for (KmerNb i = Globals::MIN_COUNT; i <= _maxCount; i++) {
-		if (_countDistribution[i] > value) {
-			index = i;
-			value = _countDistribution[i];
-		}
-	}
-	return index;
+KmerNb SimpleKmerCount::getMaxCountDistribution () const {
+  return _countDistribution.getMax();
 }
 
-KmerNb SimpleKmerCount::getThreshold(int percent) const {
-	KmerNb sum = 0;
-	KmerNb threshold = _nbValues * percent / 100;
-	for (KmerNb i = _maxCount; i != 0; i--) {
-		sum += i * _countDistribution[i];
-		if (sum >= threshold) {
-			return i;
-		}
-	}
-	return 0;
+KmerNb SimpleKmerCount::getThresholdIndex(int percent) const {
+  return _countDistribution.getThresholdIndex(_nbValues * percent / 100);
 }
 
 void SimpleKmerCount::removeUnder(KmerNb nb) {

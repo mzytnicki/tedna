@@ -22,6 +22,7 @@ along with this program.
 #include "globals.hpp"
 #include "hashes.hpp"
 #include "kmer.hpp"
+#include "countDistribution.hpp"
 using namespace std;
 
 class SimpleKmerCount {
@@ -38,7 +39,7 @@ class SimpleKmerCount {
 #endif
 		KmerNb            _maxCount;
 		KmerNb            _minCount;
-		vector < KmerNb > _countDistribution;
+		CountDistribution _countDistribution;
 		KmerNb            _nbValues;
 
     public:
@@ -54,10 +55,10 @@ class SimpleKmerCount {
 		void remove (const Kmer &kmer);
 		void computeCountDistribution();
 		void printCountDistribution() const;
-		void setMinCount(const KmerNb count);
-		KmerNb getMaxCount() const;
+		void setMinCount (const KmerNb count);
+		void setMaxCount (const KmerNb count);
 		KmerNb getMaxCountDistribution() const;
-		KmerNb getThreshold(int percent) const;
+		KmerNb getThresholdIndex(int percent) const;
 		void removeUnder(KmerNb nb);
 		KmerCode getLeastFrequent();
 		KmerCode getMostFrequent();
