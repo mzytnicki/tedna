@@ -1,18 +1,18 @@
 /**
-Copyright (C) 2013 INRA-URGI
-This file is part of TEDNA, a short reads transposable elements assembler
-TEDNA is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-GNU Affero General Public License for more details.
-See the GNU Affero General Public License for more details.
-You should have received a copy of the GNU Affero General Public License
-along with this program.
-**/
+  Copyright (C) 2013 INRA-URGI
+  This file is part of TEDNA, a short reads transposable elements assembler
+  TEDNA is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  GNU Affero General Public License for more details.
+  See the GNU Affero General Public License for more details.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.
+ **/
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -22,7 +22,7 @@ along with this program.
 #include "optionparser.h"
 #include "assembler.hpp"
 
-enum  optionIndex {UNKNOWN, INPUT1, INPUT2, INSERT, KMER, OUTPUT, THRESHOLD, PROCESSORS, REPEAT_FREQUENCY, MIN_FREQUENCY, FREQUENCY_DIF, SMALL_GRAPH, BIG_GRAPH, NB_SMALL_GRAPH, MAX_PATHS, EROSION, BUBBLE_SIZE, MIN_LTR, MAX_LTR, MAX_IDENTITY, MIN_OVERLAP, MAX_OVERLAP, SHORT_KMER, INDEL_PEN, MISMATCH_PEN, SIZE_PEN, MAX_PEN, MIN_IDENTITY, MERGE_MAX_NB, MERGE_MAX_NODES, MIN_SCAFFOLD, MAX_SCAFFOLD, SCAFFOLD_MAX_EV, MAX_EVIDENCES, MIN_TE_SIZE, MAX_TE_SIZE, FASTA_INPUT, BYTES_PER_THREAD, MAX_KMERS, MAX_READS, CHECK, HELP, VERSION};
+enum  optionIndex {UNKNOWN, INPUT1, INPUT2, INSERT, KMER, OUTPUT, THRESHOLD, PROCESSORS, REPEAT_FREQUENCY, MIN_FREQUENCY, FREQUENCY_DIF, KMER_FILE, SMALL_GRAPH, BIG_GRAPH, NB_SMALL_GRAPH, MAX_PATHS, EROSION, BUBBLE_SIZE, MIN_LTR, MAX_LTR, MAX_IDENTITY, MIN_OVERLAP, MAX_OVERLAP, SHORT_KMER, INDEL_PEN, MISMATCH_PEN, SIZE_PEN, MAX_PEN, MIN_IDENTITY, MERGE_MAX_NB, MERGE_MAX_NODES, MIN_SCAFFOLD, MAX_SCAFFOLD, SCAFFOLD_MAX_EV, MAX_EVIDENCES, MIN_TE_SIZE, MAX_TE_SIZE, FASTA_INPUT, BYTES_PER_THREAD, MAX_KMERS, MAX_READS, CHECK, HELP, VERSION};
 const option::Descriptor usage[] = {
 	{UNKNOWN,          0, "" , ""                  , option::Arg::None    , "USAGE: tedna [options]\n\n" "Compulsory options:"},
 	{INPUT1,           0, "1", "file1"             , option::Arg::Required, "  -1, --file1  \tFirst FASTQ file."},
@@ -42,6 +42,7 @@ const option::Descriptor usage[] = {
 	{REPEAT_FREQUENCY, 0, "" , "repeat-frequency"  , option::Arg::Numeric,  "  --repeat-frequency   \tMinimum number of repetitions      (default: 2)."},
 	{MIN_FREQUENCY,    0, "" , "min-frequency"     , option::Arg::Numeric,  "  --min-frequency      \tMinimum k-mer frequency            (default: 3)."},
 	{FREQUENCY_DIF,    0, "" , "frequency-dif"     , option::Arg::Numeric,  "  --frequency-dif      \tMaximum k-mer frequency difference (default: 2.5)."},
+	{KMER_FILE,        0, "" , "kmer-file"         , option::Arg::Required, "  --kmer-file          \tk-mer file                         (default: none)."},
 	{UNKNOWN,          0, "" ,  ""                 , option::Arg::None    , "\n  graph:"},
 	{SMALL_GRAPH,      0, "" , "small-graph"       , option::Arg::Numeric,  "  --small-graph        \tMinimum graph size                 (default: 300)."},
 	{BIG_GRAPH,        0, "" , "big-graph"         , option::Arg::Numeric,  "  --big-graph          \tMaximum graph size                 (default: 100000)."},
@@ -108,38 +109,44 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	if (! options[INPUT1]) {
+	if ((! options[INPUT1]) && (! options[KMER_FILE])) {
 		cout << "Error: first input FASTQ file is missing." << endl;
 		option::printUsage(std::cout, usage);
 		return 1;
 	}
 	ifstream f(options[INPUT1].arg);
-    if (f.good()) {
-        f.close();
+	if (f.good()) {
+		f.close();
 	}
 	else {
 		cout << "Error: cannot open first input FASTQ file ('" << options[INPUT1].arg << "')." << endl;
 		return 1;
 	}
-  string fileNameStr(options[INPUT1].arg);
-  string gz(".gz");
-  if ((fileNameStr.length() >= gz.length()) && (fileNameStr.compare(fileNameStr.length() - gz.length(), gz.length(), gz) == 0)) {
+	string fileNameStr(options[INPUT1].arg);
+	string gz(".gz");
+	if ((fileNameStr.length() >= gz.length()) && (fileNameStr.compare(fileNameStr.length() - gz.length(), gz.length(), gz) == 0)) {
 		cout << "Error! Input file '" << fileNameStr << "' is compressed. Please uncompress it." << endl;
 		return 1;
-  }
+	}
 	if (options[INPUT2]) {
 		ifstream g(options[INPUT2].arg);
 		if (g.good()) {
-        g.close();
-    }
-    else {
-      cout << "Error: cannot open second input FASTQ file ('" << options[INPUT2].arg << "')." << endl;
-      return 1;
-    }
+			g.close();
+		}
+		else {
+			cout << "Error: cannot open second input FASTQ file ('" << options[INPUT2].arg << "')." << endl;
+			return 1;
+		}
 		string fileNameStr = options[INPUT2].arg;
 		if ((fileNameStr.length() >= gz.length()) && (fileNameStr.compare(fileNameStr.length() - gz.length(), gz.length(), gz) == 0)) {
 			cout << "Error! Input file '" << fileNameStr << "' is compressed. Please uncompress it." << endl;
 			return 1;
+		}
+	}
+	if (options[KMER_FILE]) {
+		ifstream g(options[KMER_FILE].arg);
+		if (g.good()) {
+			g.close();
 		}
 	}
 	if (! options[OUTPUT]) {
@@ -177,6 +184,8 @@ int main(int argc, char **argv) {
 		Globals::MIN_COUNT = atoi(options[MIN_FREQUENCY].arg);
 	if (options[FREQUENCY_DIF])
 		Globals::FREQUENCY_DIFFERENCE = atoi(options[FREQUENCY_DIF].arg);
+	if (options[KMER_FILE])
+		Globals::KMER_FILE = options[KMER_FILE].arg;
 	if (options[MIN_TE_SIZE])
 		Globals::MIN_TE_SIZE = atoi(options[MIN_TE_SIZE].arg);
 	if (options[SMALL_GRAPH])

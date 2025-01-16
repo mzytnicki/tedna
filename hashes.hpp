@@ -18,6 +18,7 @@ along with this program.
 
 #include "globals.hpp"
 #include "kmerCode.hpp"
+#include "kmer.hpp"
 
 #ifdef HASH_SLOW
 #include "sparsehash/sparse_hash_map"
@@ -46,6 +47,23 @@ class DenseHash: public _DenseHash {
 			set_deleted_key(Globals::KEY_DELETED);
 		}
 };
+#endif
+
+class murmurHash_str {
+  public:
+    uint64_t operator () (KmerCode k, uint64_t seed = 0) const {
+      return murmurHash (static_cast<const void *>(&k), sizeof(k), seed);
+    }
+};
+
+#ifdef HASH_MID
+#define hash_t SimpleHash
+#endif
+#ifdef HASH_SLOW
+#define hash_t SparseHash
+#endif
+#ifdef HASH_FAST
+#define hash_t DenseHash
 #endif
 
 #endif

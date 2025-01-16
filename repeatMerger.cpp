@@ -522,7 +522,7 @@ void RepeatMerger::setCell(unsigned int i, unsigned int j, short k, short l, Seq
 	ComparisonData cd = ComparisonData(sc, first, second);
 	if ((cd.getScore() < Globals::MAX_PENALTY) && (cd.getIdentity() >= Globals::MIN_IDENTITY)) {
 		if (_comparisons[i].empty()) {
-			_comparisons[i].resize(_size - i + 1);
+			_comparisons[i].resize(i);
 		}
 		_comparisons[i][j][k][l] = cd;
 	}

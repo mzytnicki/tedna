@@ -22,25 +22,19 @@ along with this program.
 #include "globals.hpp"
 #include "hashes.hpp"
 #include "kmer.hpp"
+#include "kmerParser.hpp"
 #include "countDistribution.hpp"
 using namespace std;
 
 class SimpleKmerCount {
 
     protected:
-#ifdef HASH_MID
-		SimpleHash        _map;
-#endif
-#ifdef HASH_SLOW
-		SparseHash        _map;
-#endif
-#ifdef HASH_FAST
-		DenseHash         _map;
-#endif
+		hash_t            _map;
 		KmerNb            _maxCount;
 		KmerNb            _minCount;
 		CountDistribution _countDistribution;
 		KmerNb            _nbValues;
+		//BBhashStr         _bbhash;
 
     public:
         SimpleKmerCount ();
@@ -53,7 +47,9 @@ class SimpleKmerCount {
 		void decreaseNb (const Kmer &kmer, const KmerNb nb);
 		void remove (const KmerCode &kmerCode);
 		void remove (const Kmer &kmer);
+		void readFromParser();
 		void computeCountDistribution();
+		void fillHash();
 		void printCountDistribution() const;
 		void setMinCount (const KmerNb count);
 		void setMaxCount (const KmerNb count);

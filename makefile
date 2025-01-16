@@ -20,6 +20,10 @@ else
 	CFLAGS += -O3
 endif
 
+ifdef SAN
+	CFLAGS += -fsanitize=address -g
+endif
+
 HASH ?= SLOW
 ifeq ($(HASH), SLOW)
 	CFLAGS += -DHASH_SLOW

@@ -14,6 +14,7 @@ unsigned long  Globals::NB_READS                 = 0;
 KmerNb         Globals::MIN_COUNT                = 3;
 float          Globals::NB_REPETITIONS           = 2;
 float          Globals::FREQUENCY_DIFFERENCE     = 2.5;
+string         Globals::KMER_FILE;
 int            Globals::MIN_NB_NODES             = 500;
 unsigned int   Globals::MAX_NB_NODES             = 100000;
 unsigned int   Globals::MAX_PATHS                = 100;

@@ -48,6 +48,7 @@ class Globals {
 		static KmerNb         MIN_COUNT;
 		static float          NB_REPETITIONS;
 		static float          FREQUENCY_DIFFERENCE;
+		static string         KMER_FILE;
 		static int            MIN_NB_NODES;
 		static unsigned int   MAX_NB_NODES;
 		static unsigned int   MIN_TE_SIZE;

@@ -33,10 +33,6 @@ KmerNb CountDistribution::getMax() const {
   return _maxCount;
 }
 
-void CountDistribution::setMin(const KmerNb count) {
-  _minCount = count;
-}
-
 void CountDistribution::setMax(const KmerNb count) {
   _maxCount = count;
 	_countDistribution.assign(count+1, 0);
@@ -67,6 +63,14 @@ KmerNb CountDistribution::getThresholdIndex(float threshold) const {
     }
   }
   return 0;
+}
+
+KmerNb CountDistribution::getNbValues() const {
+  KmerNb sum = 0;
+  for (KmerNb i = _minCount; i <= _maxCount; ++i) {
+    sum += i * _countDistribution[i];
+  }
+  return sum;
 }
 
 void CountDistribution::clear() {

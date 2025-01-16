@@ -36,12 +36,10 @@ class CountDistribution {
     void increase(const KmerNb count);
     KmerNb getModeIndex() const;
     KmerNb getThresholdIndex(float threshold) const;
+    KmerNb getNbValues() const;
     void clear ();
 
 		friend ostream& operator<<(ostream& output, const CountDistribution& cd);
 };
 
 #endif
-
-
-

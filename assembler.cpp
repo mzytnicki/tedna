@@ -30,7 +30,7 @@ along with this program.
 Assembler::Assembler(const char *fileName1, const char *fileName2, const char *outputFileName, int insertSize, int thresholdPc): _insertSize(insertSize), _thresholdPc(thresholdPc), _fileName1(fileName1), _fileName2(fileName2), _outputFileName(outputFileName) { }
 
 void Assembler::assemble () {
-	readFiles();
+  readFiles();
 	computeDistributions();
 	findRepeats();
 	if (_repeats.empty()) {
@@ -78,6 +78,10 @@ void task (SimpleKmerCount &kmerCount, const char *fileName, int &partId, unsign
 }
 
 void Assembler::readFiles () {
+  if (! Globals::KMER_FILE.empty()) {
+    // Read k-mer count histogram instead
+    return;
+  }
 	const char *fileNames[] = {_fileName1, _fileName2};
   int nbFiles = (_fileName2 == nullptr)? 1: 2;
 	vector <thread> threads;
@@ -101,9 +105,15 @@ void Assembler::readFiles () {
 }
 
 void Assembler::computeDistributions () {
-	cout << "Computing k-mer distributions..." << endl;
-	_kmerCount.computeCountDistribution();
+	if (Globals::KMER_FILE.empty()) {
+		cout << "Computing k-mer distributions..." << endl;
+		_kmerCount.computeCountDistribution();
+	}
+	else {
+		_kmerCount.readFromParser();
+	}
 	KmerNb maxCountDistribution = _kmerCount.getMaxCountDistribution();
+	cout << "K-mer distribution statistics:\n";
 	cout << "\tmax count distribution: " << maxCountDistribution << " (min: " << Globals::MIN_COUNT << ")" << endl;
 	cout << "\tmax count: " << _kmerCount.getMaxCountDistribution() << endl;
 	if ((maxCountDistribution == Globals::MIN_COUNT) && (_thresholdPc == -1)) {
@@ -120,7 +130,11 @@ void Assembler::computeDistributions () {
 	check("Checking in the hash...");
 	_kmerCount.removeUnder(_threshold);
 	_kmerCount.setMinCount(_threshold);
-	_kmerCount.printCountDistribution();
+	//_kmerCount.printCountDistribution();
+	if (! Globals::KMER_FILE.empty()) {
+		// Read k-mer count histogram instead
+		_kmerCount.fillHash();
+	}
 	check("Checking in the hash after low occurrences removal...");
 }
 

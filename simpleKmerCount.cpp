@@ -24,7 +24,6 @@ along with this program.
 SimpleKmerCount::SimpleKmerCount(): _maxCount(0), _minCount(0), _nbValues(0) { }
 
 void SimpleKmerCount::addKmer(const Kmer &kmer, bool insert) {
-	//cout << "Adding " << kmer.getFirstCode() << endl;
 	++_map[kmer.getFirstCode()];
 }
 
@@ -34,6 +33,8 @@ void SimpleKmerCount::addKmer(const Kmer &kmer, mutex &m) {
 }
 
 KmerNb SimpleKmerCount::getCount(const Kmer &kmer) const {
+	if (! Globals::KMER_FILE.empty()) {
+	}
 	auto it = _map.find(kmer.getFirstCode());
 	if (it == _map.end()) {
 		return 0;
@@ -49,6 +50,7 @@ bool SimpleKmerCount::isPresent(const Kmer &kmer) const {
 	return (isPresent(kmer.getFirstCode()));
 }
 
+/*
 void SimpleKmerCount::decreaseNb(const KmerCode &kmerCode, const KmerNb nb) {
 	if (! isPresent(kmerCode)) {
 		return;
@@ -67,6 +69,7 @@ void SimpleKmerCount::decreaseNb(const KmerCode &kmerCode, const KmerNb nb) {
 void SimpleKmerCount::decreaseNb(const Kmer &kmer, const KmerNb nb) {
 	return decreaseNb(kmer.getFirstCode(), nb);
 }
+*/
 
 void SimpleKmerCount::remove(const KmerCode &kmerCode) {
 	_nbValues -= _map[kmerCode];
@@ -77,6 +80,15 @@ void SimpleKmerCount::remove(const Kmer &kmer) {
 	KmerCode code = kmer.getFirstCode();
 	_nbValues -= _map[code];
 	_map.erase(code);
+}
+
+void SimpleKmerCount::readFromParser() {
+  KmerParser parser(Globals::KMER_FILE.c_str());
+  parser.getStats();
+  _nbValues = parser.getNbValues();
+  _maxCount = parser.getMaxCount();
+  _countDistribution.setMax(parser.getMaxCount());
+  parser.fill(_countDistribution);
 }
 
 void SimpleKmerCount::computeCountDistribution() {
@@ -97,10 +109,11 @@ void SimpleKmerCount::printCountDistribution() const {
 }
 
 void SimpleKmerCount::setMinCount (const KmerNb count) {
-  _countDistribution.setMin(count);
+  _minCount = count;
 }
 
 void SimpleKmerCount::setMaxCount (const KmerNb count) {
+  _maxCount = count;
   _countDistribution.setMax(count);
 }
 
@@ -109,10 +122,18 @@ KmerNb SimpleKmerCount::getMaxCountDistribution () const {
 }
 
 KmerNb SimpleKmerCount::getThresholdIndex(int percent) const {
-  return _countDistribution.getThresholdIndex(_nbValues * percent / 100);
+  return _countDistribution.getThresholdIndex(_nbValues * static_cast<float>(percent) / 100.0);
+}
+
+void SimpleKmerCount::fillHash() {
+  KmerNb nbValues = _countDistribution.getNbValues();
+  KmerParser parser(Globals::KMER_FILE.c_str());
+  _map.resize(nbValues);
+  parser.fill(_map, _minCount);
 }
 
 void SimpleKmerCount::removeUnder(KmerNb nb) {
+        if (! Globals::KMER_FILE.empty()) return;
 	for (auto it = _map.begin(); it != _map.end(); ) {
 		if (it->second < nb) {
 			_nbValues -= it->second;
@@ -124,6 +145,7 @@ void SimpleKmerCount::removeUnder(KmerNb nb) {
 	}
 }
 
+/*
 KmerCode SimpleKmerCount::getMostFrequent() {
 	KmerCode index = 0;
 	KmerNb   value = 0;
@@ -147,6 +169,7 @@ KmerCode SimpleKmerCount::getLeastFrequent() {
 	}
 	return index;
 }
+*/
 
 pair <KmerCode, KmerNb> SimpleKmerCount::getRandom() {
 	auto it = _map.begin();
