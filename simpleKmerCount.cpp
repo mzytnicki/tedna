@@ -19,6 +19,7 @@ along with this program.
 
 #include <limits>
 #include "globals.hpp"
+#include "kmerParser.hpp"
 #include "simpleKmerCount.hpp"
 
 SimpleKmerCount::SimpleKmerCount(): _maxCount(0), _minCount(0), _nbValues(0) { }
