@@ -114,19 +114,21 @@ int main(int argc, char **argv) {
 		option::printUsage(std::cout, usage);
 		return 1;
 	}
-	ifstream f(options[INPUT1].arg);
-	if (f.good()) {
-		f.close();
-	}
-	else {
-		cout << "Error: cannot open first input FASTQ file ('" << options[INPUT1].arg << "')." << endl;
-		return 1;
-	}
-	string fileNameStr(options[INPUT1].arg);
 	string gz(".gz");
-	if ((fileNameStr.length() >= gz.length()) && (fileNameStr.compare(fileNameStr.length() - gz.length(), gz.length(), gz) == 0)) {
-		cout << "Error! Input file '" << fileNameStr << "' is compressed. Please uncompress it." << endl;
-		return 1;
+	if (options[INPUT1]) {
+		ifstream f(options[INPUT1].arg);
+		if (f.good()) {
+			f.close();
+		}
+		else {
+			cout << "Error: cannot open first input FASTQ file ('" << options[INPUT1].arg << "')." << endl;
+			return 1;
+		}
+		string fileNameStr(options[INPUT1].arg);
+		if ((fileNameStr.length() >= gz.length()) && (fileNameStr.compare(fileNameStr.length() - gz.length(), gz.length(), gz) == 0)) {
+			cout << "Error! Input file '" << fileNameStr << "' is compressed. Please uncompress it." << endl;
+			return 1;
+		}
 	}
 	if (options[INPUT2]) {
 		ifstream g(options[INPUT2].arg);
