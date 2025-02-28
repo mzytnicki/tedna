@@ -51,27 +51,6 @@ bool SimpleKmerCount::isPresent(const Kmer &kmer) const {
 	return (isPresent(kmer.getFirstCode()));
 }
 
-/*
-void SimpleKmerCount::decreaseNb(const KmerCode &kmerCode, const KmerNb nb) {
-	if (! isPresent(kmerCode)) {
-		return;
-	}
-	KmerNb count = _map[kmerCode];
-	if (count <= nb + _minCount) {
-		_nbValues -= count;
-		_map.erase(kmerCode);
-	}
-	else {
-		_nbValues -= nb;
-		_map[kmerCode] -= nb;
-	}
-}
-
-void SimpleKmerCount::decreaseNb(const Kmer &kmer, const KmerNb nb) {
-	return decreaseNb(kmer.getFirstCode(), nb);
-}
-*/
-
 void SimpleKmerCount::remove(const KmerCode &kmerCode) {
 	_nbValues -= _map[kmerCode];
 	_map.erase(kmerCode);
@@ -145,32 +124,6 @@ void SimpleKmerCount::removeUnder(KmerNb nb) {
 		}
 	}
 }
-
-/*
-KmerCode SimpleKmerCount::getMostFrequent() {
-	KmerCode index = 0;
-	KmerNb   value = 0;
-	for (auto it = _map.begin(); it != _map.end(); ++it) {
-		if (it->second > value) {
-			index = it->first;
-			value = it->second;
-		}
-	}
-	return index;
-}
-
-KmerCode SimpleKmerCount::getLeastFrequent() {
-	KmerCode index = 0;
-	KmerNb   value = -1;
-	for (auto it = _map.begin(); it != _map.end(); ++it) {
-		if (it->second < value) {
-			index = it->first;
-			value = it->second;
-		}
-	}
-	return index;
-}
-*/
 
 pair <KmerCode, KmerNb> SimpleKmerCount::getRandom() {
 	auto it = _map.begin();

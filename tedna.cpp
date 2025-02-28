@@ -71,7 +71,7 @@ const option::Descriptor usage[] = {
 	{MAX_SCAFFOLD,     0, "" , "max-scaffold"      , option::Arg::Numeric , "  --max-scaffold       \tMaximum number of evidences/scaff. (default: 10000)."},
 	{SCAFFOLD_MAX_EV,  0, "" , "scaffold-max-nb"   , option::Arg::Numeric , "  --scaffold-max-nb    \tMaximum number of neighbor/node    (default: 5), 0: do not use."},
 	{UNKNOWN,          0, "" ,  ""                 , option::Arg::None    , "\n  input reading:"},                                             
-	{FASTA_INPUT,      0, "" , "fasta"             , option::Arg::None    , "  --fasta-input        \tInput file is in FASTA format      (default: not set)."},
+	{FASTA_INPUT,      0, "" , "fasta-input"       , option::Arg::None    , "  --fasta-input        \tInput file is in FASTA format      (default: not set)."},
 	{BYTES_PER_THREAD, 0, "" , "bytes-per-thread"  , option::Arg::Numeric , "  --bytes-per-thread   \tNumber of bytes read per thread    (default: 10000000)."},
 	{MAX_READS,        0, "" , "max-reads"         , option::Arg::Numeric , "  --max-reads          \tMaximum number of reads read       (default: 0), 0: read all."},
 	{CHECK,            0, "" , "check"             , option::Arg::Optional, "  --check              \tCheck if a sequence is assembled   (default: none)."},

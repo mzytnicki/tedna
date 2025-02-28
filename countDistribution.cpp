@@ -35,11 +35,11 @@ KmerNb CountDistribution::getMax() const {
 
 void CountDistribution::setMax(const KmerNb count) {
   _maxCount = count;
-	_countDistribution.assign(count+1, 0);
+  _countDistribution.assign(count+1, 0);
 }
 
 void CountDistribution::increase(const KmerNb count) {
-	++_countDistribution[count];
+  ++_countDistribution[count];
 }
 
 KmerNb CountDistribution::getModeIndex() const {

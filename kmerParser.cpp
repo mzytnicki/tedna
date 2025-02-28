@@ -36,11 +36,17 @@ KmerNb KmerParser::getNbValues () const {
 void KmerParser::getStats () {
   _file.clear();
   _file.seekg(0);
+  KmerNb nbInt = 0;
   for (string line; getline(_file, line); ++_nbValues) {
     if (! line.empty()) {
       if (line[0] == '>') {
-        KmerNb nbInt = atoi(&line[1]);
-        _maxCount = max(_maxCount, nbInt);
+        nbInt = atoi(&line[1]);
+      }
+      else {
+        Sequence s(line);
+        if ((! s.isAmbiguous()) && (! s.isLowComplexity())) {
+          _maxCount = max(_maxCount, nbInt);
+        }
       }
     }
   }
@@ -50,60 +56,17 @@ void KmerParser::fill (CountDistribution &cd) {
   _file.clear();
   _file.seekg(0);
   KmerNb cpt = 0;
+  KmerNb nbInt = 0;
   cout << "Reading k-mer file...\n";
   for (string line; getline(_file, line); ++cpt) {
     if (! line.empty()) {
       if (line[0] == '>') {
-        KmerNb nbInt = atoi(&line[1]);
-        cd.increase(nbInt);
-      }
-    }
-    if (cpt % 100000000 == 0) cout << "\t" << cpt << " lines read\n";
-  }
-  cout << "\t" << cpt << " lines read, done.\n";
-}
-
-/*
-void KmerParser::fillKmers (BBhashStr &bb, KmerNb minCount) {
-  _file.clear();
-  _file.seekg(0);
-  KmerNb nb = 0;
-  KmerNb cpt = 0;
-  KmerNb cptAdded = 0;
-  cout << "Filling k-mer table...\n";
-  for (string line; getline(_file, line); ++cpt) {
-    if (! line.empty()) {
-      if (line[0] == '>') {
-        nb = atoi(&line[1]);
+        nbInt = atoi(&line[1]);
       }
       else {
-        if (nb >= minCount) {
-          Kmer k(line);
-          bb.add(k.getFirstCode());
-          ++cptAdded;
-        }
-      }
-    }
-    if (cpt % 100000000 == 0) cout << "\t" << cpt << " lines read\n";
-  }
-  cout << "\t" << cpt << " lines read, " << cptAdded << " k-mers inserted, done.\n";
-}
-
-void KmerParser::fillCounts (BBhashStr &bb, KmerNb minCount) {
-  _file.clear();
-  _file.seekg(0);
-  KmerNb nb = 0;
-  KmerNb cpt = 0;
-  cout << "Adding k-mer counts...\n";
-  for (string line; getline(_file, line); ++cpt) {
-    if (! line.empty()) {
-      if (line[0] == '>') {
-        nb = atoi(&line[1]);
-      }
-      else {
-        if (nb >= minCount) {
-          Kmer k(line);
-          bb.setCount(k.getFirstCode(), nb);
+        Sequence s(line);
+        if ((! s.isAmbiguous()) && (! s.isLowComplexity())) {
+          cd.increase(nbInt);
         }
       }
     }
@@ -111,7 +74,6 @@ void KmerParser::fillCounts (BBhashStr &bb, KmerNb minCount) {
   }
   cout << "\t" << cpt << " lines read, done.\n";
 }
-*/
 
 void KmerParser::fill(hash_t &map, KmerNb minCount) {
   _file.clear();
@@ -127,7 +89,10 @@ void KmerParser::fill(hash_t &map, KmerNb minCount) {
       else {
         if (nb >= minCount) {
           Kmer k(line);
-          map[k.getFirstCode()] = nb;
+          Sequence s(line);
+          if ((! s.isAmbiguous()) && (! s.isLowComplexity())) {
+            map[k.getFirstCode()] = nb;
+          }
         }
       }
     }
